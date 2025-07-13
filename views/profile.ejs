@@ -56,7 +56,7 @@
   function playXssScenarioAnimation(displayName) {
     const scenarioLines = [
       'Student enters:',
-      '  Display Name: ',
+      '  Display Name: ', // will type displayName
       '',
       'Server saves your input and displays it on the page.',
       '',
@@ -74,6 +74,7 @@
         return;
       }
       let line = scenarioLines[i];
+      // Animate displayName input
       if (i === 1) {
         if (!typingInput) {
           typingInput = true;
@@ -91,17 +92,20 @@
           i++;
           j = 0;
         }
-      }
-      if (j < line.length) {
+      } else if (i === 2) {
+        // Show what the student typed as a summary line
+        fullText += '\nInput submitted: "' + displayName + '"\n';
+        consoleDiv.innerHTML = fullText + '<span class="cursor">._</span>';
+        i++;
+        setTimeout(typeLine, 600);
+      } else if (j < line.length) {
         let before = '';
-        if (i === 2) before = fullText;
         if (i > 2) before = fullText;
         consoleDiv.innerHTML = before + line.slice(0, j+1) + "<span class='cursor'>._</span>";
         j++;
         setTimeout(typeLine, 40);
       } else {
         let before = '';
-        if (i === 2) before = fullText;
         if (i > 2) before = fullText;
         fullText = before + line + '\n';
         consoleDiv.innerHTML = fullText + '<span class="cursor">._</span>';

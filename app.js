@@ -5,7 +5,22 @@ const path = require('path');
 const session = require('express-session');
 
 const app = express();
-const db = new sqlite3.Database(':memory:');
+const db = new sqlite3.Database('hackme.db');
+
+// For login animation AJAX check
+app.use(express.json());
+// AJAX endpoint for login animation to check if login would succeed
+app.post('/login-check', (req, res) => {
+  const { username, password } = req.body;
+  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+  db.get(query, (err, row) => {
+    if (row) {
+      res.json({ success: true });
+    } else {
+      res.json({ success: false });
+    }
+  });
+});
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -17,8 +32,12 @@ app.use(session({
 }));
 
 db.serialize(() => {
-  db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)');
-  db.run("INSERT INTO users (username, password) VALUES ('admin', 'password')");
+  db.run('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, displayName TEXT)');
+  db.get("SELECT COUNT(*) as count FROM users WHERE username = 'admin'", (err, row) => {
+    if (row.count === 0) {
+      db.run("INSERT INTO users (username, password) VALUES ('admin', 'password')");
+    }
+  });
 });
 
 app.get('/', (req, res) => {
@@ -144,6 +163,7 @@ app.post('/register', (req, res) => {
   });
 });
 
+
 app.get('/profile', (req, res) => {
   // VULNERABLE: No authentication, IDOR, XSS
   const username = req.query.username || req.session.username;
@@ -153,6 +173,18 @@ app.get('/profile', (req, res) => {
     } else {
       res.send('Profile not found');
     }
+  });
+});
+
+// XSS vulnerable profile update
+app.post('/profile', (req, res) => {
+  // VULNERABLE: No authentication, XSS, IDOR
+  const username = req.query.username || req.session.username;
+  const displayName = req.body.displayName || '';
+  db.run(`UPDATE users SET displayName = '${displayName}' WHERE username = '${username}'`, function(err) {
+    db.get(`SELECT * FROM users WHERE username = '${username}'`, (err2, user) => {
+      res.render('profile', { user });
+    });
   });
 });
 
