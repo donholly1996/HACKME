@@ -2,112 +2,195 @@
 <html>
 <head>
   <title>HACKME Login</title>
-  <style>
-    body {
-      background: #181c20;
-      color: #f8f8f2;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .login-container {
-      background: #23272b;
-      padding: 2rem 2.5rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-      min-width: 320px;
-      max-width: 90vw;
-    }
-    h1 {
-      margin-bottom: 1.5rem;
-      color: #50fa7b;
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-bottom: 1rem;
-      color: #8be9fd;
-    }
-    input[type="text"], input[type="password"] {
-      width: 100%;
-      padding: 0.5rem;
-      border-radius: 5px;
-      border: 1px solid #44475a;
-      background: #282a36;
-      color: #f8f8f2;
-      margin-top: 0.3rem;
-      font-size: 1rem;
-    }
-    button {
-      width: 100%;
-      padding: 0.7rem;
-      background: #50fa7b;
-      color: #282a36;
-      border: none;
-      border-radius: 5px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 0.5rem;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #40c96b;
-    }
-    .message {
-      color: #ff5555;
-      margin-bottom: 1rem;
-      text-align: center;
-      font-weight: bold;
-    }
-    .tip {
-      margin-top: 1.5rem;
-      color: #f1fa8c;
-      font-size: 0.95rem;
-      text-align: center;
-    }
-    code {
-      background: #44475a;
-      color: #f1fa8c;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="login-container">
-    <h1>HACKME Login</h1>
-    <% if (message) { %>
-      <!-- VULNERABLE: XSS in error message -->
-      <div class="message"><%- message %></div>
-    <% } %>
-    <form method="POST" action="/login">
-      <label>Username:
-        <input type="text" name="username" autocomplete="username" />
-      </label>
-      <label>Password:
-        <input type="password" name="password" autocomplete="current-password" />
-      </label>
-      <button type="submit">Login</button>
-    </form>
-    <div class="tip">
-      Try SQL Injection: <code>' OR '1'='1</code><br>
-      <a href="/help" style="color:#8be9fd;text-decoration:underline;">How to exploit vulnerabilities?</a> |
-      <a href="/register" style="color:#8be9fd;text-decoration:underline;">Register a new user</a> |
-      <a href="/change-password" style="color:#8be9fd;text-decoration:underline;">Change password</a>
-      <div style="margin-top:1.5rem;font-size:0.95rem;color:#f1fa8c;text-align:left;">
-        <b>Vulnerability Explanations:</b><br>
-        <ul style="margin:0 0 0 1.2em;padding:0;">
-          <li><b>SQL Injection:</b> The login form directly inserts your input into a SQL query, allowing you to bypass authentication or extract data.</li>
-          <li><b>XSS:</b> Error messages and dashboard display your input without sanitization, so scripts you enter will run in the browser.</li>
-          <li><b>User Enumeration:</b> Try <a href="/login-verbose">/login-verbose</a> for different error messages for username vs. password.</li>
+<body class="bg-dark text-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-gradient bg-primary shadow mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold fs-3" href="/">HACKME <span class="badge bg-danger ms-2">Vulnerable Demo</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
+          <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="card shadow-lg p-4" style="min-width:350px;max-width:400px;">
+      <div class="mb-3">
+        <label class="form-label">Show Attack Scenario?</label>
+        <div class="btn-group w-100" role="group" aria-label="Show Attack Scenario toggle">
+          <input type="radio" class="btn-check" name="showScenarioToggle" id="showScenarioYes" autocomplete="off" checked>
+          <label class="btn btn-outline-success" for="showScenarioYes">Yes</label>
+          <input type="radio" class="btn-check" name="showScenarioToggle" id="showScenarioNo" autocomplete="off">
+          <label class="btn btn-outline-danger" for="showScenarioNo">No</label>
+        </div>
+      </div>
+      <!-- Attack Scenario Offcanvas -->
+      <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="attackScenario" aria-labelledby="attackScenarioLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="attackScenarioLabel">SQL Injection Demo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div id="scenarioConsole" style="font-family:monospace;white-space:pre-line;background:#222;padding:1em;border-radius:8px;min-height:120px;"></div>
+          <div class="mt-3">
+            <button class="btn btn-light w-100" data-bs-dismiss="offcanvas">Close</button>
+          </div>
+        </div>
+      </div>
+      <h2 class="text-center text-primary mb-3">Login</h2>
+      <% if (message) { %>
+        <!-- VULNERABLE: XSS in error message -->
+        <div class="alert alert-danger"><%- message %></div>
+      <% } %>
+      <form id="loginForm" method="POST" action="/login" autocomplete="off">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" autocomplete="username" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-success w-100">Login</button>
+      </form>
+      <div class="mt-3 text-center">
+        <a href="/register">Register a new user</a> |
+        <a href="/change-password">Change password</a>
+      </div>
+      <div class="alert alert-warning mt-4">
+        <b>Try this:</b> <br>
+        <span class="badge bg-danger">SQL Injection</span> <code>' OR '1'='1</code> <br>
+        <span class="badge bg-danger">XSS</span> <code>&lt;img src=x onerror=alert('XSS')&gt;</code>
+      </div>
+      <div class="alert alert-info mt-2">
+        <b>Why is this vulnerable?</b><br>
+        <ul class="mb-0">
+          <li><b>SQL Injection:</b> Your input is directly inserted into a SQL query.</li>
+          <li><b>XSS:</b> Error messages display your input as HTML.</li>
+          <li><b>User Enumeration:</b> <a href="/login-verbose">/login-verbose</a> gives different errors for username vs. password.</li>
         </ul>
       </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let readyToSubmit = false;
+    const attackScenario = document.getElementById('attackScenario');
+    const showScenarioYes = document.getElementById('showScenarioYes');
+    const showScenarioNo = document.getElementById('showScenarioNo');
+
+    function playScenarioAnimation(username, password, sql, isBypass) {
+      const scenarioLines = [
+        'Student enters:',
+        '  Username: ',
+        '  Password: ',
+        '',
+        'SQL Query:',
+        sql,
+        '',
+        'Result: ' + (isBypass ? 'TRUE (Login bypassed!)' : 'FALSE (Login failed)')
+      ];
+      const consoleDiv = document.getElementById('scenarioConsole');
+      // We'll build up the full text as we go, so nothing is cleared after typing
+      let fullText = '';
+      let i = 0, j = 0, typingInput = false, inputValue = '', inputTarget = '';
+      function typeLine() {
+        if (i >= scenarioLines.length) {
+          // After all lines, leave the full text (no cursor)
+          consoleDiv.innerHTML = fullText.trimEnd();
+          return;
+        }
+        let line = scenarioLines[i];
+        if (i === 1) {
+          if (!typingInput) {
+            typingInput = true;
+            inputValue = username;
+            inputTarget = 'username';
+            j = 0;
+          }
+          if (j <= inputValue.length) {
+            consoleDiv.innerHTML = 'Student enters:' + '\n  Username: ' + inputValue.slice(0, j) + "<span class='cursor'>._</span>";
+            j++;
+            setTimeout(typeLine, 50);
+            return;
+          } else {
+            typingInput = false;
+            fullText = 'Student enters:' + '\n  Username: ' + username + '\n';
+            i++;
+            j = 0;
+          }
+        }
+        if (i === 2) {
+          if (!typingInput) {
+            typingInput = true;
+            inputValue = password;
+            inputTarget = 'password';
+            j = 0;
+          }
+          if (j <= inputValue.length) {
+            consoleDiv.innerHTML = fullText + '  Password: ' + inputValue.slice(0, j) + "<span class='cursor'>._</span>";
+            j++;
+            setTimeout(typeLine, 50);
+            return;
+          } else {
+            typingInput = false;
+            fullText += '  Password: ' + password + '\n\n';
+            i++;
+            j = 0;
+          }
+        }
+        if (j < line.length) {
+          let before = '';
+          if (i === 3) before = fullText;
+          if (i > 3) before = fullText;
+          consoleDiv.innerHTML = before + line.slice(0, j+1) + "<span class='cursor'>._</span>";
+          j++;
+          setTimeout(typeLine, 40);
+        } else {
+          let before = '';
+          if (i === 3) before = fullText;
+          if (i > 3) before = fullText;
+          fullText = before + line + '\n';
+          consoleDiv.innerHTML = fullText + '<span class="cursor">._</span>';
+          i++; j = 0;
+          setTimeout(typeLine, 600);
+        }
+      }
+      typeLine();
+      bootstrap.Offcanvas.getOrCreateInstance(attackScenario).show();
+    }
+
+    document.getElementById('loginForm').onsubmit = function(e) {
+      if (!readyToSubmit) {
+        if (showScenarioYes.checked) {
+          e.preventDefault();
+          const username = document.querySelector('input[name="username"]').value || 'admin';
+          const password = document.querySelector('input[name="password"]').value || "' OR '1'='1";
+          const sql = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+          let isBypass = /('|")\s*or\s*('|")?1('|")?=\1?1/i.test(password);
+          playScenarioAnimation(username, password, sql, isBypass);
+          // Only allow submit after offcanvas is closed
+          const handler = function() {
+            readyToSubmit = true;
+            attackScenario.removeEventListener('hidden.bs.offcanvas', handler);
+            document.getElementById('loginForm').submit();
+          };
+          attackScenario.addEventListener('hidden.bs.offcanvas', handler);
+        } else {
+          // No scenario, just submit
+          readyToSubmit = true;
+        }
+      } else {
+        readyToSubmit = false;
+      }
+    };
+  </script>
 </body>
 </html>

@@ -171,6 +171,11 @@ app.post('/change-password', (req, res) => {
   });
 });
 
+app.get('/xss-test', (req, res) => {
+  const input = req.query.input || '';
+  res.send(`<!DOCTYPE html><html><head><title>XSS Test</title></head><body><h2>XSS Test</h2><div>Echoed input:</div><div style='border:1px solid #ccc;padding:1em;margin:1em 0;'>${input}</div><form method='GET'><input name='input' placeholder='Try &lt;script&gt;alert(1)&lt;/script&gt;' style='width:300px'><button type='submit'>Test</button></form><div style='margin-top:2em;'><a href="/">Back to Login</a></div></body></html>`);
+});
+
 app.listen(3000, () => {
   console.log('HACKME app listening on http://localhost:3000');
 });

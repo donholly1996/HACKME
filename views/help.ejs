@@ -2,110 +2,60 @@
 <html>
 <head>
   <title>HACKME - Exploitation Guide</title>
-  <style>
-    body {
-      background: #181c20;
-      color: #f8f8f2;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .help-container {
-      background: #23272b;
-      padding: 2.5rem 3rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.5);
-      min-width: 350px;
-      max-width: 95vw;
-      margin-top: 3rem;
-    }
-    h1 {
-      color: #50fa7b;
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-    h2 {
-      color: #8be9fd;
-      margin-top: 2rem;
-    }
-    code, pre {
-      background: #44475a;
-      color: #f1fa8c;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    ul {
-      margin-bottom: 1.5rem;
-    }
-    .back {
-      margin-top: 2rem;
-      text-align: center;
-    }
-    a {
-      color: #50fa7b;
-      text-decoration: underline;
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="help-container">
-    <h1>HACKME Exploitation Guide</h1>
-    <div style="color:#f1fa8c;margin-bottom:1.5rem;">
-      <b>Summary of Vulnerabilities:</b>
-      <ul style="margin:0 0 0 1.2em;padding:0;">
-        <li><b>SQL Injection:</b> Login form input is directly inserted into SQL queries.</li>
-        <li><b>XSS:</b> User input is rendered without sanitization on error messages and dashboard.</li>
-        <li><b>IDOR:</b> Account info can be accessed by changing the <code>id</code> in the URL.</li>
-        <li><b>CSRF:</b> Transfer form has no CSRF protection.</li>
-        <li><b>Open Redirect:</b> Redirect endpoint allows redirection to any URL.</li>
-        <li><b>Sensitive Data Exposure:</b> Passwords are stored and shown in plaintext.</li>
-        <li><b>Clickjacking:</b> No X-Frame-Options header, so the app can be embedded in an iframe.</li>
-        <li><b>Sensitive Info in URL:</b> <code>/whoami</code> exposes your username in the URL.</li>
-        <li><b>Unvalidated Redirect (Path):</b> <code>/goto/&lt;site&gt;</code> redirects to any site.</li>
-        <li><b>Weak Session:</b> Predictable session secret, no expiration.</li>
-        <li><b>User Enumeration:</b> <code>/login-verbose</code> gives different errors for username vs. password.</li>
-      </ul>
+<body class="bg-dark text-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-gradient bg-primary shadow mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold fs-3" href="/">HACKME <span class="badge bg-danger ms-2">Vulnerable Demo</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+          <li class="nav-item"><a class="nav-link" href="/">Login</a></li>
+        </ul>
+      </div>
     </div>
-    <h2>1. SQL Injection (Login Page)</h2>
-    <ul>
-      <li>On the login page, enter any username (or leave blank).</li>
-      <li>For the password, enter: <code>' OR '1'='1</code></li>
-      <li>This will bypass authentication and log you in as the first user in the database.</li>
-    </ul>
-    <h2>2. Cross-Site Scripting (XSS)</h2>
-    <ul>
-      <li>On the login page, enter the following as the username (with any password):<br>
-        <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code>
-      </li>
-      <li>The error message will execute your script, demonstrating a reflected XSS vulnerability.</li>
-    </ul>
-    <h2>3. XSS on Dashboard</h2>
-    <ul>
-      <li>Log in with username: <code>&lt;img src=x onerror=alert('XSS')&gt;</code> and any password (using SQL injection if needed).</li>
-      <li>After login, the dashboard will render your username, triggering the XSS payload.</li>
-    </ul>
-    <h2>4. Insecure Direct Object Reference (IDOR)</h2>
-    <ul>
-      <li>After logging in, click "View Account" on the dashboard.</li>
-      <li>Change the <code>id</code> in the URL (e.g., <code>/account?id=1</code> to <code>/account?id=2</code>) to view other users' info, including their password.</li>
-    </ul>
-    <h2>5. CSRF (Cross-Site Request Forgery)</h2>
-    <ul>
-      <li>Go to "Transfer" on the dashboard. The form has no CSRF protection.</li>
-      <li>Anyone can submit the form on your behalf if you are logged in.</li>
-    </ul>
-    <h2>6. Open Redirect</h2>
-    <ul>
-      <li>Click "Open Redirect" on the dashboard or visit <code>/redirect?url=https://evil.com</code>.</li>
-      <li>You will be redirected to any URL, which can be abused for phishing.</li>
-    </ul>
-    <div class="back">
-      <a href="/">&larr; Back to Login</a>
+  </nav>
+  <div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="card shadow-lg p-4 w-100" style="max-width:700px;">
+      <h2 class="text-center text-primary mb-3">HACKME Exploitation Guide</h2>
+      <div class="alert alert-info">
+        <b>Summary of Vulnerabilities:</b>
+        <ul>
+          <li><b>SQL Injection:</b> Login and register forms are vulnerable.</li>
+          <li><b>XSS:</b> User input is rendered as HTML in error messages and dashboard.</li>
+          <li><b>IDOR:</b> Account info can be accessed by changing the <code>id</code> in the URL.</li>
+          <li><b>CSRF:</b> Transfer form has no CSRF protection.</li>
+          <li><b>Open Redirect:</b> Redirect endpoint allows redirection to any URL.</li>
+          <li><b>Sensitive Data Exposure:</b> Passwords are stored and shown in plaintext.</li>
+          <li><b>Clickjacking:</b> No X-Frame-Options header, so the app can be embedded in an iframe.</li>
+          <li><b>Sensitive Info in URL:</b> <code>/whoami</code> exposes your username in the URL.</li>
+          <li><b>Unvalidated Redirect (Path):</b> <code>/goto/&lt;site&gt;</code> redirects to any site.</li>
+          <li><b>Weak Session:</b> Predictable session secret, no expiration.</li>
+          <li><b>User Enumeration:</b> <code>/login-verbose</code> gives different errors for username vs. password.</li>
+        </ul>
+      </div>
+      <div class="alert alert-warning">
+        <b>Try these attacks:</b><br>
+        <span class="badge bg-danger">SQL Injection</span> <code>' OR '1'='1</code> (login)<br>
+        <span class="badge bg-danger">XSS</span> <code>&lt;img src=x onerror=alert('XSS')&gt;</code> (login/dashboard)
+      </div>
+      <div class="alert alert-success">
+        <b>How to exploit:</b>
+        <ul>
+          <li><b>SQL Injection:</b> Use <code>' OR '1'='1</code> as password to bypass login.</li>
+          <li><b>XSS:</b> Enter <code>&lt;img src=x onerror=alert('XSS')&gt;</code> as username to trigger XSS.</li>
+          <li><b>IDOR:</b> Change <code>id</code> in <code>/account?id=1</code> to view other users.</li>
+          <li><b>CSRF:</b> Submit the transfer form from another site.</li>
+          <li><b>Open Redirect:</b> Visit <code>/redirect?url=https://evil.com</code>.</li>
+        </ul>
+      </div>
+      <div class="text-center mt-4">
+        <a href="/">&larr; Back to Login</a>
+      </div>
     </div>
   </div>
 </body>

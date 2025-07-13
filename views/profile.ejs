@@ -2,18 +2,128 @@
 <html>
 <head>
   <title>Profile - HACKME</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>body{background:#181c20;color:#f8f8f2;font-family:'Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;}.profile-container{background:#23272b;padding:2rem 2.5rem;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,0.4);min-width:320px;max-width:90vw;}h1{color:#50fa7b;text-align:center;}table{width:100%;margin-top:1rem;border-collapse:collapse;}td{padding:0.5rem;color:#f1fa8c;}tr:nth-child(even){background:#282a36;}a{color:#8be9fd;text-decoration:underline;}</style>
 </head>
 <body>
   <div class="profile-container">
     <h1>Profile</h1>
+    <form id="xssForm" method="POST" action="/profile">
+      <div class="mb-3">
+        <label class="form-label">Display Name (XSS vulnerable):</label>
+        <input type="text" name="displayName" class="form-control" value="<%- user.displayName || '' %>" autocomplete="off" />
+      </div>
+      <button type="submit" class="btn btn-success w-100 mb-2">Update Display Name</button>
+    </form>
     <table>
       <tr><td>Username:</td><td><%- user.username %></td></tr>
       <tr><td>Password:</td><td><%- user.password %></td></tr>
+      <tr><td>Display Name:</td><td id="displayNameCell"><%- user.displayName || '' %></td></tr>
     </table>
+    <div class="mb-3 mt-3">
+      <label class="form-label">Show Attack Scenario?</label>
+      <div class="btn-group w-100" role="group" aria-label="Show Attack Scenario toggle">
+        <input type="radio" class="btn-check" name="showXssScenarioToggle" id="showXssScenarioYes" autocomplete="off" checked>
+        <label class="btn btn-outline-success" for="showXssScenarioYes">Yes</label>
+        <input type="radio" class="btn-check" name="showXssScenarioToggle" id="showXssScenarioNo" autocomplete="off">
+        <label class="btn btn-outline-danger" for="showXssScenarioNo">No</label>
+      </div>
+    </div>
+    <!-- Attack Scenario Offcanvas -->
+    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="xssAttackScenario" aria-labelledby="xssAttackScenarioLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="xssAttackScenarioLabel">XSS Demo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div id="xssScenarioConsole" style="font-family:monospace;white-space:pre-line;background:#222;padding:1em;border-radius:8px;min-height:120px;"></div>
+        <div class="mt-3">
+          <button class="btn btn-light w-100" data-bs-dismiss="offcanvas">Close</button>
+        </div>
+      </div>
+    </div>
     <div style="margin-top:1.5rem;text-align:center;">
       <a href="/dashboard">&larr; Back to Dashboard</a>
     </div>
   </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const xssAttackScenario = document.getElementById('xssAttackScenario');
+  const showXssScenarioYes = document.getElementById('showXssScenarioYes');
+  const showXssScenarioNo = document.getElementById('showXssScenarioNo');
+  const xssForm = document.getElementById('xssForm');
+  function playXssScenarioAnimation(displayName) {
+    const scenarioLines = [
+      'Student enters:',
+      '  Display Name: ',
+      '',
+      'Server saves your input and displays it on the page.',
+      '',
+      'Rendered HTML:',
+      `<td id=\"displayNameCell\">${displayName}</td>`,
+      '',
+      displayName.includes('<script') || displayName.includes('onerror=') ? 'Result: XSS! JavaScript executes.' : 'Result: No XSS (safe input)'
+    ];
+    const consoleDiv = document.getElementById('xssScenarioConsole');
+    let fullText = '';
+    let i = 0, j = 0, typingInput = false, inputValue = '';
+    function typeLine() {
+      if (i >= scenarioLines.length) {
+        consoleDiv.innerHTML = fullText.trimEnd();
+        return;
+      }
+      let line = scenarioLines[i];
+      if (i === 1) {
+        if (!typingInput) {
+          typingInput = true;
+          inputValue = displayName;
+          j = 0;
+        }
+        if (j <= inputValue.length) {
+          consoleDiv.innerHTML = scenarioLines[0] + '\n  Display Name: ' + inputValue.slice(0, j) + "<span class='cursor'>._</span>";
+          j++;
+          setTimeout(typeLine, 50);
+          return;
+        } else {
+          typingInput = false;
+          fullText = scenarioLines[0] + '\n  Display Name: ' + displayName + '\n';
+          i++;
+          j = 0;
+        }
+      }
+      if (j < line.length) {
+        let before = '';
+        if (i === 2) before = fullText;
+        if (i > 2) before = fullText;
+        consoleDiv.innerHTML = before + line.slice(0, j+1) + "<span class='cursor'>._</span>";
+        j++;
+        setTimeout(typeLine, 40);
+      } else {
+        let before = '';
+        if (i === 2) before = fullText;
+        if (i > 2) before = fullText;
+        fullText = before + line + '\n';
+        consoleDiv.innerHTML = fullText + '<span class="cursor">._</span>';
+        i++; j = 0;
+        setTimeout(typeLine, 600);
+      }
+    }
+    typeLine();
+    bootstrap.Offcanvas.getOrCreateInstance(xssAttackScenario).show();
+  }
+  xssForm.onsubmit = function(e) {
+    if (showXssScenarioYes.checked) {
+      e.preventDefault();
+      const displayName = xssForm.displayName.value;
+      playXssScenarioAnimation(displayName);
+      // Only allow submit after offcanvas is closed
+      const handler = function() {
+        xssAttackScenario.removeEventListener('hidden.bs.offcanvas', handler);
+        xssForm.submit();
+      };
+      xssAttackScenario.addEventListener('hidden.bs.offcanvas', handler);
+    }
+  };
+</script>
 </html>
