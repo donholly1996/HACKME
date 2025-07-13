@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HACKME Dashboard</title>
+  <style>
+    body {
+      background: #181c20;
+      color: #f8f8f2;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .dashboard-container {
+      background: #23272b;
+      padding: 2.5rem 3rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+      min-width: 350px;
+      max-width: 95vw;
+    }
+    h1 {
+      color: #50fa7b;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    .welcome {
+      color: #8be9fd;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .account-box {
+      background: #282a36;
+      border-radius: 8px;
+      padding: 1.5rem 1.2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .account-title {
+      color: #f1fa8c;
+      font-size: 1.1rem;
+      margin-bottom: 0.7rem;
+    }
+    .balance {
+      font-size: 2.1rem;
+      color: #50fa7b;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .actions button {
+      flex: 1;
+      padding: 0.7rem;
+      background: #8be9fd;
+      color: #23272b;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .actions button:hover {
+      background: #50fa7b;
+      color: #23272b;
+    }
+    form.logout {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .logout-btn {
+      background: #ff5555;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.7rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>HACKME Bank</h1>
+    <div class="welcome">Welcome, <%- username %>!</div>
+    <div class="account-box">
+      <div class="account-title">Checking Account</div>
+      <div class="balance">$13,370.00</div>
+      <div class="actions">
+        <a href="/transfer"><button>Transfer</button></a>
+        <a href="/account?id=1"><button>View Account</button></a>
+        <a href="/redirect?url=https://evil.com"><button>Open Redirect</button></a>
+        <a href="/whoami"><button>Who Am I?</button></a>
+        <a href="/goto/evil.com"><button>Goto (Unvalidated Redirect)</button></a>
+        <a href="/profile"><button>Profile</button></a>
+        <a href="/change-password"><button>Change Password</button></a>
+      </div>
+      <div style="margin-top:1.5rem;font-size:0.95rem;color:#f1fa8c;text-align:left;">
+        <b>Vulnerability Explanations:</b><br>
+        <ul style="margin:0 0 0 1.2em;padding:0;">
+          <li><b>IDOR:</b> The "View Account" button lets you change the <code>id</code> in the URL to see other users' data.</li>
+          <li><b>CSRF:</b> The "Transfer" form has no CSRF protection, so anyone can submit it for you.</li>
+          <li><b>Open Redirect:</b> The "Open Redirect" button sends you to any URL, which can be abused for phishing.</li>
+          <li><b>XSS:</b> Your username is displayed without sanitization, so scripts in your username will run here.</li>
+          <li><b>Who Am I?:</b> This button reveals the current logged-in user's information.</li>
+          <li><b>Unvalidated Redirect:</b> The "Goto" button redirects to a URL without validation.</li>
+        </ul>
+      </div>
+    </div>
+    <form class="logout" method="POST" action="/logout">
+      <button class="logout-btn" type="submit">Log Out</button>
+    </form>
+  </div>
+</body>
+</html>

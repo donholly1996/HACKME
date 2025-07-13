@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Account Details</title>
+  <style>body{background:#181c20;color:#f8f8f2;font-family:'Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;}.account-container{background:#23272b;padding:2rem 2.5rem;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,0.4);min-width:320px;max-width:90vw;}h1{color:#50fa7b;text-align:center;}table{width:100%;margin-top:1rem;border-collapse:collapse;}td{padding:0.5rem;color:#f1fa8c;}tr:nth-child(even){background:#282a36;}a{color:#8be9fd;text-decoration:underline;}</style>
+</head>
+<body>
+  <div class="account-container">
+    <h1>Account Details</h1>
+    <table>
+      <tr><td>ID:</td><td><%= user.id %></td></tr>
+      <tr><td>Username:</td><td><%= user.username %></td></tr>
+      <tr><td>Password:</td><td><%= user.password %></td></tr>
+    </table>
+    <div style="margin-top:1.5rem;text-align:center;">
+      <a href="/dashboard">&larr; Back to Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

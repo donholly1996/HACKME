@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HACKME Login</title>
+  <style>
+    body {
+      background: #181c20;
+      color: #f8f8f2;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #23272b;
+      padding: 2rem 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      min-width: 320px;
+      max-width: 90vw;
+    }
+    h1 {
+      margin-bottom: 1.5rem;
+      color: #50fa7b;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-bottom: 1rem;
+      color: #8be9fd;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #44475a;
+      background: #282a36;
+      color: #f8f8f2;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.7rem;
+      background: #50fa7b;
+      color: #282a36;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #40c96b;
+    }
+    .message {
+      color: #ff5555;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: bold;
+    }
+    .tip {
+      margin-top: 1.5rem;
+      color: #f1fa8c;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    code {
+      background: #44475a;
+      color: #f1fa8c;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>HACKME Login</h1>
+    <% if (message) { %>
+      <!-- VULNERABLE: XSS in error message -->
+      <div class="message"><%- message %></div>
+    <% } %>
+    <form method="POST" action="/login">
+      <label>Username:
+        <input type="text" name="username" autocomplete="username" />
+      </label>
+      <label>Password:
+        <input type="password" name="password" autocomplete="current-password" />
+      </label>
+      <button type="submit">Login</button>
+    </form>
+    <div class="tip">
+      Try SQL Injection: <code>' OR '1'='1</code><br>
+      <a href="/help" style="color:#8be9fd;text-decoration:underline;">How to exploit vulnerabilities?</a> |
+      <a href="/register" style="color:#8be9fd;text-decoration:underline;">Register a new user</a> |
+      <a href="/change-password" style="color:#8be9fd;text-decoration:underline;">Change password</a>
+      <div style="margin-top:1.5rem;font-size:0.95rem;color:#f1fa8c;text-align:left;">
+        <b>Vulnerability Explanations:</b><br>
+        <ul style="margin:0 0 0 1.2em;padding:0;">
+          <li><b>SQL Injection:</b> The login form directly inserts your input into a SQL query, allowing you to bypass authentication or extract data.</li>
+          <li><b>XSS:</b> Error messages and dashboard display your input without sanitization, so scripts you enter will run in the browser.</li>
+          <li><b>User Enumeration:</b> Try <a href="/login-verbose">/login-verbose</a> for different error messages for username vs. password.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
